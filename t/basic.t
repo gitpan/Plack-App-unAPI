@@ -6,7 +6,9 @@ use HTTP::Request::Common;
 use Plack::App::unAPI;
 use Plack::Request;
 
-my $app1 = sub { [ 404, [ 'Content-Type' => 'application/xml' ], [ '<xml/>' ] ] };
+my $app1 = sub { 
+    [ 404, [ 'Content-Type' => 'application/xml' ], [ '<xml/>' ] ] 
+};
 
 {
     package MyApp;
@@ -36,6 +38,9 @@ my $app = unAPI(
 test_psgi $app, sub {
     my ($cb, $res) = @_;
 
+    $res = $cb->(GET '/?format=foo&id=bar');
+    is( $res->code, 406, "Not Acceptable" );
+
     foreach ('/','/?format=xml') {
         $res = $cb->(GET $_);
         is( $res->code, 300, "Multiple Choices for $_" );
@@ -59,7 +64,6 @@ test_psgi $app, sub {
     $res = $cb->(GET "/?id=abc&format=txt");
     is( $res->code, 200, 'Found (via format=txt)' );
     is( $res->content, "ID: abc", "format=txt" );
-
 };
 
 done_testing;

@@ -4,7 +4,8 @@ MANIFEST
 META.yml
 Makefile.PL
 README
-app.psgi
 lib/Plack/App/unAPI.pm
+t/500.t
 t/author-critic.t
 t/basic.t
+t/simple.t

@@ -17,6 +17,7 @@ meta-spec:
   version: 1.4
 name: Plack-App-unAPI
 requires:
+  Carp: 0
   Exporter: 0
   Plack::Component: 0
   Plack::Request: 0
@@ -27,4 +28,4 @@ requires:
 resources:
   bugtracker: https://github.com/nichtich/plack-app-unapi/issues
   repository: git://github.com/nichtich/plack-app-unapi.git
-version: 0.1
+version: 0.2

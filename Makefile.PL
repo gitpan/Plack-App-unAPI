@@ -25,6 +25,7 @@ my %WriteMakefileArgs = (
   "LICENSE" => "perl",
   "NAME" => "Plack::App::unAPI",
   "PREREQ_PM" => {
+    "Carp" => 0,
     "Exporter" => 0,
     "Plack::Component" => 0,
     "Plack::Request" => 0,
@@ -32,7 +33,7 @@ my %WriteMakefileArgs = (
     "strict" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.1",
+  "VERSION" => "0.2",
   "test" => {
     "TESTS" => "t/*.t"
   }
