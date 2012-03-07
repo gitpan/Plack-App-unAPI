@@ -28,4 +28,4 @@ requires:
 resources:
   bugtracker: https://github.com/nichtich/plack-app-unapi/issues
   repository: git://github.com/nichtich/plack-app-unapi.git
-version: 0.2
+version: 0.3
