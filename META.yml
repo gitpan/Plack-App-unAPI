@@ -3,14 +3,14 @@ abstract: 'Serve via unAPI'
 author:
   - 'Jakob Voss'
 build_requires:
-  English: 0
   HTTP::Request::Common: 0
+  Plack::Component: 0
   Plack::Test: 0
   Test::More: 0
 configure_requires:
   ExtUtils::MakeMaker: 6.30
 dynamic_config: 0
-generated_by: 'Dist::Zilla version 4.300009, CPAN::Meta::Converter version 2.113640'
+generated_by: 'Dist::Zilla version 4.300021, CPAN::Meta::Converter version 2.120921'
 license: perl
 meta-spec:
   url: http://module-build.sourceforge.net/META-spec-v1.4.html
@@ -19,13 +19,16 @@ name: Plack-App-unAPI
 requires:
   Carp: 0
   Exporter: 0
-  Plack::Component: 0
+  Log::Contextual: 0
+  Log::Contextual::WarnLogger: 0
+  Plack::Middleware::Negotiate: 0
   Plack::Request: 0
   parent: 0
-  perl: 5.010
+  perl: v5.10.1
   strict: 0
   warnings: 0
 resources:
-  bugtracker: https://github.com/nichtich/plack-app-unapi/issues
-  repository: git://github.com/nichtich/plack-app-unapi.git
-version: 0.3
+  bugtracker: https://github.com/nichtich/Plack-App-unAPI/issues
+  homepage: https://github.com/nichtich/Plack-App-unAPI
+  repository: https://github.com/nichtich/Plack-App-unAPI.git
+version: 0.31

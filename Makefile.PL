@@ -2,7 +2,7 @@
 use strict;
 use warnings;
 
-use 5.010;
+use 5.010001;
 
 use ExtUtils::MakeMaker 6.30;
 
@@ -12,8 +12,8 @@ my %WriteMakefileArgs = (
   "ABSTRACT" => "Serve via unAPI",
   "AUTHOR" => "Jakob Voss",
   "BUILD_REQUIRES" => {
-    "English" => 0,
     "HTTP::Request::Common" => 0,
+    "Plack::Component" => 0,
     "Plack::Test" => 0,
     "Test::More" => 0
   },
@@ -27,13 +27,15 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Carp" => 0,
     "Exporter" => 0,
-    "Plack::Component" => 0,
+    "Log::Contextual" => 0,
+    "Log::Contextual::WarnLogger" => 0,
+    "Plack::Middleware::Negotiate" => 0,
     "Plack::Request" => 0,
     "parent" => 0,
     "strict" => 0,
     "warnings" => 0
   },
-  "VERSION" => "0.3",
+  "VERSION" => "0.31",
   "test" => {
     "TESTS" => "t/*.t"
   }
