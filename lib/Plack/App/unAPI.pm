@@ -2,12 +2,12 @@ use strict;
 use warnings;
 package Plack::App::unAPI;
 {
-  $Plack::App::unAPI::VERSION = '0.31';
+  $Plack::App::unAPI::VERSION = '0.32';
 }
 #ABSTRACT: Serve via unAPI
 use v5.10.1;
 
-use parent qw(Plack::Middleware::Negotiate Exporter);
+use base qw(Exporter Plack::Middleware::Negotiate);
 
 use Plack::Request;
 use Carp qw(croak);
@@ -17,8 +17,6 @@ our @EXPORT = qw(unAPI wrAPI);
 use Log::Contextual::WarnLogger;
 use Log::Contextual qw(:log :Dlog), -default_logger
     => Log::Contextual::WarnLogger->new({ env_prefix => 'PLACK_APP_UNAPI' });
-
-use Plack::Middleware::Negotiate;
 
 ## no critic
 sub unAPI(@) { __PACKAGE__->new(@_) }
@@ -167,11 +165,11 @@ Plack::App::unAPI - Serve via unAPI
 
 =head1 VERSION
 
-version 0.31
+version 0.32
 
 =head1 SYNOPSIS
 
-Create <app.psgi> like this:
+Create C<app.psgi> like this:
 
     use Plack::App::unAPI;
 
@@ -367,7 +365,7 @@ Jakob Voss
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2012 by Jakob Voss.
+This software is copyright (c) 2013 by Jakob Voss.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

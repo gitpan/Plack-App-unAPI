@@ -11,12 +11,7 @@ use ExtUtils::MakeMaker 6.30;
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Serve via unAPI",
   "AUTHOR" => "Jakob Voss",
-  "BUILD_REQUIRES" => {
-    "HTTP::Request::Common" => 0,
-    "Plack::Component" => 0,
-    "Plack::Test" => 0,
-    "Test::More" => 0
-  },
+  "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
   },
@@ -26,16 +21,11 @@ my %WriteMakefileArgs = (
   "NAME" => "Plack::App::unAPI",
   "PREREQ_PM" => {
     "Carp" => 0,
-    "Exporter" => 0,
     "Log::Contextual" => 0,
-    "Log::Contextual::WarnLogger" => 0,
-    "Plack::Middleware::Negotiate" => 0,
-    "Plack::Request" => 0,
-    "parent" => 0,
-    "strict" => 0,
-    "warnings" => 0
+    "Plack" => 0,
+    "Plack::Middleware::Negotiate" => "0.05"
   },
-  "VERSION" => "0.31",
+  "VERSION" => "0.32",
   "test" => {
     "TESTS" => "t/*.t"
   }
