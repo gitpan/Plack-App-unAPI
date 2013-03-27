@@ -2,7 +2,7 @@ use strict;
 use warnings;
 package Plack::App::unAPI;
 {
-  $Plack::App::unAPI::VERSION = '0.32';
+  $Plack::App::unAPI::VERSION = '0.4';
 }
 #ABSTRACT: Serve via unAPI
 use v5.10.1;
@@ -13,10 +13,6 @@ use Plack::Request;
 use Carp qw(croak);
 
 our @EXPORT = qw(unAPI wrAPI);
-
-use Log::Contextual::WarnLogger;
-use Log::Contextual qw(:log :Dlog), -default_logger
-    => Log::Contextual::WarnLogger->new({ env_prefix => 'PLACK_APP_UNAPI' });
 
 ## no critic
 sub unAPI(@) { __PACKAGE__->new(@_) }
@@ -36,8 +32,6 @@ sub new {
 
         $self->{apps}->{$name} = $app;
         $self->{formats}->{$name} = { type => $type, %about };
-
-        log_trace { "Initialized Plack::App::unAPI with format=$_ for $type" };
     }
 
     $self->{formats}->{_} = $formats{_};
@@ -68,8 +62,6 @@ sub call {
     return $self->formats('')
         if $id eq '' and !($route->{always} // $self->{formats}->{_}->{always});
 
-    log_trace { "Valid unAPI request with format=$format id=$id" };
-
     my $res = eval {
         $self->{apps}->{$format}->( $env );
     };
@@ -83,7 +75,6 @@ sub call {
     }
 
     if ($error) { # TODO: catch only on request
-        log_warn { $error };
         return [ 500, [ 'Content-Type' => 'text/plain' ], [ $error ] ];
     }
 
@@ -165,7 +156,7 @@ Plack::App::unAPI - Serve via unAPI
 
 =head1 VERSION
 
-version 0.32
+version 0.4
 
 =head1 SYNOPSIS
 
@@ -334,11 +325,6 @@ The return value for the example given above would be:
         ['xml','1','application/xml',undef,undef,undef,0],
         ['txt','1','text/plain',undef,undef,undef,0]
     ]
-
-=head1 LOGGING AND DEBUGGING
-
-Plack::App::unAPI uses L<Log::Contextual>. To get detailed logging messages set
-C<< $ENV{PLACK_APP_UNAPI_TRACE} = 1 >>.
 
 =head1 SEE ALSO
 

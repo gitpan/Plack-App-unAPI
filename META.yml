@@ -14,12 +14,11 @@ meta-spec:
 name: Plack-App-unAPI
 requires:
   Carp: 0
-  Log::Contextual: 0
-  Plack: 0
+  Plack: 1.0
   Plack::Middleware::Negotiate: 0.05
   perl: v5.10.1
 resources:
   bugtracker: https://github.com/nichtich/Plack-App-unAPI/issues
   homepage: https://github.com/nichtich/Plack-App-unAPI
   repository: https://github.com/nichtich/Plack-App-unAPI.git
-version: 0.32
+version: 0.4

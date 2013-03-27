@@ -21,11 +21,10 @@ my %WriteMakefileArgs = (
   "NAME" => "Plack::App::unAPI",
   "PREREQ_PM" => {
     "Carp" => 0,
-    "Log::Contextual" => 0,
-    "Plack" => 0,
+    "Plack" => "1.0",
     "Plack::Middleware::Negotiate" => "0.05"
   },
-  "VERSION" => "0.32",
+  "VERSION" => "0.4",
   "test" => {
     "TESTS" => "t/*.t"
   }
