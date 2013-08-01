@@ -2,7 +2,7 @@ use strict;
 use warnings;
 package Plack::App::unAPI;
 {
-  $Plack::App::unAPI::VERSION = '0.4';
+  $Plack::App::unAPI::VERSION = '0.41';
 }
 #ABSTRACT: Serve via unAPI
 use v5.10.1;
@@ -50,7 +50,7 @@ sub call {
     # and sent 404 if no known format was specified
 
     return $self->formats($id)
-        if $format ~~ ['','_'];
+        if $format eq '' or $format eq '_';
 
     my $route = $self->{formats}->{$format};
     if ( !$route || !$self->{apps}->{$format} ) {
@@ -156,7 +156,7 @@ Plack::App::unAPI - Serve via unAPI
 
 =head1 VERSION
 
-version 0.4
+version 0.41
 
 =head1 SYNOPSIS
 
@@ -318,12 +318,13 @@ C<< <?xml version="1.0" encoding="UTF-8"?> >>.
 Returns a list of content variants to be used in L<HTTP::Negotiate>. The return
 value is an array reference of array references, each with seven elements:
 format name, source quality (qs), type, encoding, charset, language, and size.
-The return value for the example given above would be:
+The list is sorted by format name.  The return value for the example given
+above would be:
 
     [
         ['json','1','application/json',undef,undef,undef,0],
-        ['xml','1','application/xml',undef,undef,undef,0],
-        ['txt','1','text/plain',undef,undef,undef,0]
+        ['txt','1','text/plain',undef,undef,undef,0],
+        ['xml','1','application/xml',undef,undef,undef,0]
     ]
 
 =head1 SEE ALSO
@@ -347,11 +348,11 @@ Chudnov et al. (2006): I<Introducing unAP>. In: Ariadne, 48,
 
 =head1 AUTHOR
 
-Jakob Voss
+Jakob Voß
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2013 by Jakob Voss.
+This software is copyright (c) 2013 by Jakob Voß.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.

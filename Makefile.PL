@@ -10,7 +10,7 @@ use ExtUtils::MakeMaker 6.30;
 
 my %WriteMakefileArgs = (
   "ABSTRACT" => "Serve via unAPI",
-  "AUTHOR" => "Jakob Voss",
+  "AUTHOR" => "Jakob Vo\303\237",
   "BUILD_REQUIRES" => {},
   "CONFIGURE_REQUIRES" => {
     "ExtUtils::MakeMaker" => "6.30"
@@ -22,9 +22,9 @@ my %WriteMakefileArgs = (
   "PREREQ_PM" => {
     "Carp" => 0,
     "Plack" => "1.0",
-    "Plack::Middleware::Negotiate" => "0.05"
+    "Plack::Middleware::Negotiate" => "0.06"
   },
-  "VERSION" => "0.4",
+  "VERSION" => "0.41",
   "test" => {
     "TESTS" => "t/*.t"
   }
