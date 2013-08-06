@@ -2,118 +2,25 @@ use strict;
 use warnings;
 package Plack::App::unAPI;
 {
-  $Plack::App::unAPI::VERSION = '0.41';
+  $Plack::App::unAPI::VERSION = '0.5';
 }
 #ABSTRACT: Serve via unAPI
 use v5.10.1;
 
-use base qw(Exporter Plack::Middleware::Negotiate);
-
+use Plack::App::unAPI::Impl;
 use Plack::Request;
-use Carp qw(croak);
+use Carp;
 
+use parent ('Plack::Component', 'Exporter');
 our @EXPORT = qw(unAPI wrAPI);
 
+use Plack::Util::Accessor qw(impl);
+
 ## no critic
-sub unAPI(@) { __PACKAGE__->new(@_) }
+sub unAPI(@) { 
+    Plack::App::unAPI::Impl->new(@_)
+}
 ## use critic
-
-sub new {
-    my ($class, %formats) = @_;
-
-    my $self = bless {
-        formats => { },
-        apps    => { },
-    }, ref $class || $class;
-
-    foreach my $name (grep { $_ ne '_' } keys %formats) {
-        my ($app, $type, %about) = @{$formats{$name}};
-        croak "unAPI format required MIME type" unless $type;
-
-        $self->{apps}->{$name} = $app;
-        $self->{formats}->{$name} = { type => $type, %about };
-    }
-
-    $self->{formats}->{_} = $formats{_};
-
-    $self->prepare_app;
-    $self;
-}
-
-sub call {
-    my ($self, $env) = @_;
-    my $req    = Plack::Request->new($env);
-    my $format = $req->param('format') // '';
-    my $id     = $req->param('id') // '';
-
-    # TODO: here we could first lookup the resource at the server
-    # and sent 404 if no known format was specified
-
-    return $self->formats($id)
-        if $format eq '' or $format eq '_';
-
-    my $route = $self->{formats}->{$format};
-    if ( !$route || !$self->{apps}->{$format} ) {
-        my $res = $self->formats($id);
-        $res->[0] = 406; # Not Acceptable
-        return $res;
-    }
-
-    return $self->formats('')
-        if $id eq '' and !($route->{always} // $self->{formats}->{_}->{always});
-
-    my $res = eval {
-        $self->{apps}->{$format}->( $env );
-    };
-    my $error = $@;
-
-    if ( $error ) {
-        $error = "Internal crash with format=$format and id=$id: $error";
-    } elsif (not is_psgi_response($res)) {
-        # we may also check response type...
-        $error = "No PSGI response for format=$format and id=$id";
-    }
-
-    if ($error) { # TODO: catch only on request
-        return [ 500, [ 'Content-Type' => 'text/plain' ], [ $error ] ];
-    }
-
-    $res;
-}
-
-# checks whether PSGI conforms to PSGI specification
-sub is_psgi_response {
-    my $res = shift;
-    return (ref($res) and ref($res) eq 'ARRAY' and
-        (@$res == 3 or @$res == 2) and
-        $res->[0] =~ /^\d+$/ and $res->[0] >= 100 and
-        ref $res->[1] and ref $res->[1] eq 'ARRAY');
-}
-
-sub formats {
-    my ($self, $id, $header) = @_;
-
-    my $status = 300; # Multiple Choices
-    my $type   = 'application/xml; charset: utf-8';
-    my @xml    = ($header // '<?xml version="1.0" encoding="UTF-8"?>');
-
-    push @xml, $id eq '' ?  '<formats>'
-                         : "<formats id=\"" . _xmlescape($id) . "\">";
-
-    while (my ($name, $format) = each %{$self->{formats}}) {
-        next if $name eq '_';
-        my $line = "<format name=\"$name\" type=\"".$format->{type}."\"";
-        if ( $format->{docs} ) {
-            push @xml, "$line docs=\"" . _xmlescape($format->{docs}) . '" />';
-        } else {
-            push @xml, "$line />"
-        }
-    }
-
-    push @xml, '</formats>';
-
-    return [ $status, [ 'Content-Type' => $type ], [ join "\n", @xml] ];
-}
 
 sub wrAPI {
     my ($code, $type, %about) = @_;
@@ -133,15 +40,33 @@ sub wrAPI {
     return [ $app => $type, %about ];
 }
 
-sub _xmlescape {
-    my $xml = shift;
-    if ($xml =~ /[\&\<\>"]/) {
-        $xml =~ s/\&/\&amp\;/g;
-        $xml =~ s/\</\&lt\;/g;
-        $xml =~ s/\>/\&gt\;/g;
-        $xml =~ s/"/\&quot\;/g;
+sub prepare_app {
+    my $self = shift;
+
+    my $format_spec = $self->formats;
+    my %format_impl;
+
+    foreach my $format (keys %$format_spec) {
+        my $method = "format_$format";
+        if (!$self->can($method)) {
+            croak __PACKAGE__." must implement method $method"; 
+        }
+        $format_impl{$format} = wrAPI(
+            sub { $self->$method(shift); } => @{$format_spec->{$format}}
+        );
     }
-    return $xml;
+
+    $self->impl( Plack::App::unAPI::Impl->new( %format_impl ) );
+}
+
+sub call {
+    my $self = shift;
+    $self->impl->call(shift);
+}
+
+# to be implemented in subclass
+sub formats {
+    return { }
 }
 
 1;
@@ -156,11 +81,26 @@ Plack::App::unAPI - Serve via unAPI
 
 =head1 VERSION
 
-version 0.41
+version 0.5
 
 =head1 SYNOPSIS
 
 Create C<app.psgi> like this:
+
+    use Plack::App::unAPI;
+
+    my $get_json = sub { my $id = shift; ...; return $json; };
+    my $get_xml  = sub { my $id = shift; ...; return $xml; };
+    my $get_txt  = sub { my $id = shift; ...; return $txt; };
+
+    unAPI
+        json => wrAPI( $get_json => 'application/json' ),
+        xml  => wrAPI( $get_xml  => 'application/xml' ),
+        txt  => wrAPI( $get_txt  => 'text/plain', docs => 'http://example.com' );
+
+The function C<wrAPI> facilitates definition of PSGI apps that serve resources
+in one format, based on HTTP query parameter C<id>. One can also use custom
+PSGI apps:
 
     use Plack::App::unAPI;
 
@@ -173,74 +113,42 @@ Create C<app.psgi> like this:
         xml  => [ $app2 => 'application/xml' ],
         txt  => [ $app3 => 'text/plain', docs => 'http://example.com' ];
 
-Run for instance by calling C<plackup yourscript.psgi> and retrieve:
+One can also implement the unAPI Server as subclass of Plack::App::unAPI:
 
-    http://localhost:5000/?id=abc&format=json  # calls $app1->($env);
-    http://localhost:5000/?id=abc&format=xml   # calls $app2->($env);
-    http://localhost:5000/?id=abc&format=txt   # calls $app3->($env);
-    http://localhost:5000/                     # returns list of formats
-    http://localhost:5000/?format=xml          # returns list of formats
-    http://localhost:5000/?id=abc              # returns list of formats
+    package MyUnAPIServer;
+    use parent 'Plack::App::unAPI';
 
-PSGI applications can be created as subclass of L<Plack::Component> or as
-simple code reference:
+    sub format_json { my $id = shift; ...; return $json; }
+    sub format_xml  { my $id = shift; ...; return $xml; }
+    sub format_txt  { my $id = shift; ...; return $txt; }
 
-    use Plack::Request;
-
-    # PSGI application that serves resource in JSON
-
-    sub get_resource_as_json {
-        my $id = shift;
-        ...
-        return $json;
+    sub formats {
+        return {
+            json => [ 'application/json' ],
+            xml  => [ 'application/xml' ],
+            txt  => [ 'text/plain', docs => 'http://example.com' ]
+        }
     }
-
-    my $app1 = sub {
-        my $id   = Plack::Request->new(shift)->param('id') // '';
-        my $json = get_resource_as_json( $id );
-
-        return defined $json
-            ? [ 200, [ 'Content-Type' => $type ], [ $json ] ]
-            : [ 404, [ 'Content-Type' => 'text/plain' ], [ 'not found' ] ];
-    };
-
-To facilitate applications as above, Plack::App::unAPI exports the function
-C<wrAPI> which can be used like this:
-
-    use Plack::App::unAPI;
-
-    unAPI
-        json => wrAPI( \&get_resource_as_json  => 'application/json' ),
-        xml  => wrAPI( \&get_resource_as_xml   => 'application/xml' ),
-        txt  => wrAPI( \&get_resource_as_plain => 'text/plain' );
 
 =head1 DESCRIPTION
 
-Plack::App::unAPI implements an unAPI server as PSGI application. The HTTP
-request is routed to different PSGI applications based on the requested format.
-
-A L<PSGI> application is a Perl code reference or an object with a C<call>
-method that gets an environment variable and returns an array reference with
-defined structure as HTTP response.
-
-L<unAPI|http://unapi.info> is a tiny HTTP API to query discretely identified
-resources in different formats.  The basic idea of unAPI is having two HTTP GET
-query parameters:
+Plack::App::unAPI implements an L<unAPI|http://unapi.info> server as L<PSGI>
+application. The HTTP request is routed to different PSGI applications based on
+the requested format. An unAPI server receives two query parameters via HTTP
+GET:
 
 =over 4
 
-=item *
+=item id
 
-B<id> as resource identifier
+a resource identifier to select the resource to be returned.
 
-=item *
+=item format
 
-B<format> to select a format
+a format identifier. If no (or no supported) format is specified, a list of
+supported formats is returned as XML document.
 
 =back
-
-If no (or no supported) format is specified, a list of formats is returned as
-XML document.
 
 =head1 METHODS
 
@@ -305,7 +213,23 @@ This method returns an array reference to be passed to the constructor. The
 first argument must be a simple code reference that gets called with C<id> as
 only parameter. If its return value is C<undef>, a 404 response is returned.
 Otherwise the code reference must return a serialized byte string (NO unicode
-characters) that has MIME type C<$type>.
+characters) that has MIME type C<$type>. To give an example:
+
+    sub get_json { my $id = shift; ...; return $json; }
+
+    # short form:
+    my $app = wrAPI( \&get_json => 'application/json' );
+
+    # equivalent code:
+    my $app = [
+        sub {
+            my $id   = Plack::Request->new(shift)->param('id') // '';
+            my $json = get_json( $id );
+            return defined $json
+                ? [ 200, [ 'Content-Type' => $type ], [ $json ] ]
+                : [ 404, [ 'Content-Type' => 'text/plain' ], [ 'not found' ] ];
+        } => 'application/json' 
+    ];
 
 =head2 formats ( [ $id [, $header ] ] )
 

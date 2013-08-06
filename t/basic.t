@@ -27,12 +27,12 @@ my $app2 = MyApp->new;
 my @xml = ( 
     '<?xml version="1.0" encoding="UTF-8"?>',
     '<format name="xml" type="application/xml" />',
-    '<format name="txt" type="text/plain" docs="http://example.com" />',
+    '<format name="txt" type="text/plain" docs="http://example.com?x&amp;y" />',
     '</formats>' );
 
 my $app = unAPI(
     xml  => [ $app1 => 'application/xml' ],
-    txt  => [ $app2 => 'text/plain', docs => 'http://example.com', quality => 0.3 ]
+    txt  => [ $app2 => 'text/plain', docs => 'http://example.com?x&y', quality => 0.3 ]
 );
 
 test_psgi $app, sub {
@@ -69,8 +69,8 @@ test_psgi $app, sub {
 };
 
 is_deeply( $app->variants, [
+        ['txt','0.3','text/plain',undef,undef,undef,0],
         ['xml','1','application/xml',undef,undef,undef,0],
-        ['txt','0.3','text/plain',undef,undef,undef,0]
     ], 'variants'
 );
 

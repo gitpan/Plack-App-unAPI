@@ -17,4 +17,8 @@ requires:
   Plack: 1.0
   Plack::Middleware::Negotiate: 0.06
   perl: v5.10.1
-version: 0.41
+resources:
+  bugtracker: https://github.com/nichtich/Plack-App-unAPI/issues
+  homepage: https://github.com/nichtich/Plack-App-unAPI
+  repository: https://github.com/nichtich/Plack-App-unAPI.git
+version: 0.5
