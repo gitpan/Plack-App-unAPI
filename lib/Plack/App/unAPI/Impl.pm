@@ -2,7 +2,7 @@ use strict;
 use warnings;
 package Plack::App::unAPI::Impl;
 {
-  $Plack::App::unAPI::Impl::VERSION = '0.5';
+  $Plack::App::unAPI::Impl::VERSION = '0.51';
 }
 #ABSTRACT: Implementation of unAPI PSGI application
 use v5.10.1;
@@ -95,8 +95,9 @@ sub formats {
     push @xml, $id eq '' ?  '<formats>'
                          : "<formats id=\"" . _xmlescape($id) . "\">";
 
-    while (my ($name, $format) = each %{$self->{formats}}) {
+    foreach my $name (sort keys %{ $self->{formats} }) {
         next if $name eq '_';
+        my $format = $self->{formats}->{$name};
         my $line = "<format name=\"$name\" type=\"".$format->{type}."\"";
         if ( $format->{docs} ) {
             push @xml, "$line docs=\"" . _xmlescape($format->{docs}) . '" />';
@@ -132,7 +133,7 @@ Plack::App::unAPI::Impl - Implementation of unAPI PSGI application
 
 =head1 VERSION
 
-version 0.5
+version 0.51
 
 =head1 AUTHOR
 

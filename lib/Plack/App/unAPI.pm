@@ -2,7 +2,7 @@ use strict;
 use warnings;
 package Plack::App::unAPI;
 {
-  $Plack::App::unAPI::VERSION = '0.5';
+  $Plack::App::unAPI::VERSION = '0.51';
 }
 #ABSTRACT: Serve via unAPI
 use v5.10.1;
@@ -81,7 +81,7 @@ Plack::App::unAPI - Serve via unAPI
 
 =head1 VERSION
 
-version 0.5
+version 0.51
 
 =head1 SYNOPSIS
 
