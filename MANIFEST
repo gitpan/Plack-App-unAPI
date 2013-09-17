@@ -1,12 +1,10 @@
 CHANGES
-Changes
 LICENSE
 MANIFEST
 META.yml
 Makefile.PL
 README
 lib/Plack/App/unAPI.pm
-lib/Plack/App/unAPI/Impl.pm
 t/500.t
 t/author-critic.t
 t/basic.t

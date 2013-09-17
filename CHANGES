@@ -1,6 +1,12 @@
 Changelog for Plack-App-unAPI
 
-0.51 2013-09-12T12:36:09
+0.60 2013-09-17T09:35:13
+ - fixed tests on Perl >= 5.18
+ - introduced method 'available_formats'
+ - refactoring
+ - fixed documentation
+
+0.51 2013-09-12T12:36:01
  - sort format list
  - slightly changed build process
 
