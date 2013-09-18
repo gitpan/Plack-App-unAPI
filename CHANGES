@@ -1,6 +1,9 @@
 Changelog for Plack-App-unAPI
 
-0.60 2013-09-17T09:35:13
+0.61 2013-09-18T15:10:10
+ - pass $env to format methods as well
+
+0.60 2013-09-17T09:34:43
  - fixed tests on Perl >= 5.18
  - introduced method 'available_formats'
  - refactoring

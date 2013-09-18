@@ -19,4 +19,4 @@ resources:
   bugtracker: https://github.com/nichtich/Plack-App-unAPI/issues
   homepage: https://github.com/nichtich/Plack-App-unAPI
   repository: https://github.com/nichtich/Plack-App-unAPI.git
-version: 0.60
+version: 0.61

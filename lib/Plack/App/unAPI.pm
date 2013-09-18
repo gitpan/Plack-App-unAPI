@@ -1,7 +1,7 @@
 use strict;
 package Plack::App::unAPI;
 #ABSTRACT: Serve via unAPI
-our $VERSION = '0.60'; #VERSION
+our $VERSION = '0.61'; #VERSION
 
 use v5.10.1;
 
@@ -20,9 +20,8 @@ sub call {
     my ($self, $env) = @_;
 
     my $req    = Plack::Request->new($env);
-    my $format = $req->param('format') // ''; # $self->negotiate($env);
+    my $format = $req->param('format') // '';
     my $id     = $req->param('id') // '';
-
     
     # TODO: here we could first lookup the resource at the server
     # and sent 404 if no known format was specified
@@ -93,8 +92,9 @@ sub _lookup2psgi {
     my ($method, $type) = @_;
     # TODO: error response in corresponding content type and more headers
     sub {
-        my $id      = Plack::Request->new($_[0])->param('id') // '';
-        my $content = $method->( $id );
+        my ($env) = @_;
+        my $id      = Plack::Request->new($env)->param('id') // '';
+        my $content = $method->( $id, $env );
         return defined $content
             ? [ 200, [ 'Content-Type' => $type ], [ $content ] ]
             : [ 404, [ 'Content-Type' => 'text/plain' ], [ 'not found' ] ];
@@ -121,7 +121,7 @@ sub _trigger_formats { # TODO: make Plack::App::unAPI::Format
                     if (!$self->can($method)) {
                         croak __PACKAGE__." must implement method $method"; 
                     }
-                    sub { $self->$method(shift); };
+                    sub { $self->$method(@_); };
                 };
 
                 $app = _lookup2psgi( $lookup, $type );
@@ -191,7 +191,7 @@ Plack::App::unAPI - Serve via unAPI
 
 =head1 VERSION
 
-version 0.60
+version 0.61
 
 =head1 SYNOPSIS
 
@@ -260,14 +260,51 @@ supported formats is returned as XML document.
 
 =head1 METHODS
 
-=head2 new ( formats => { %formats [, _ => { %options } ] } )
+=head2 unAPI ( %formats )
 
-To create a server object you must provide a list of mappings between format
-names and PSGI applications to serve requests for the particular format. Each
-application is wrapped in an array reference, followed by its MIME type and
-optional information fields about the format. So the general form is:
+Exported by default as handy alias for
+
+    Plack::App::unAPI->new( formats => \%formats )->to_app
+
+=head2 wrAPI ( $code, $type, [ %about ] )
+
+This method returns an array reference to be passed to the constructor. The
+first argument must be a simple code reference that gets called with C<id> as
+only parameter. If its return value is C<undef>, a 404 response is returned.
+Otherwise the code reference must return a serialized byte string (NO unicode
+characters) that has MIME type C<$type>. To give an example:
+
+    sub get_json { my $id = shift; ...; return $json; }
+
+    # short form:
+    my $app = wrAPI( \&get_json => 'application/json' );
+
+    # equivalent code:
+    my $app = [
+        sub {
+            my $id   = Plack::Request->new(shift)->param('id') // '';
+            my $json = get_json( $id );
+            return defined $json
+                ? [ 200, [ 'Content-Type' => $type ], [ $json ] ]
+                : [ 404, [ 'Content-Type' => 'text/plain' ], [ 'not found' ] ];
+        } => 'application/json' 
+    ];
+
+=head1 CONFIGURATION
+
+=over
+
+=item formats
+
+Hash reference that maps format names to PSGI applications. Each application is
+wrapped in an array reference, followed by its MIME type and optional
+information fields about the format. So the general form is:
 
     $format => [ $app => $type, %about ]
+
+If a class implements method 'C<format_$format>' this form is also possible:
+
+    $format => [ $type, %about ]
 
 The following optional information fields are supported:
 
@@ -310,43 +347,9 @@ By default, the result is checked to be valid PSGI (at least to some degree)
 and errors in single applications are catched - in this case a response with
 HTTP status code 500 is returned.
 
-=head2 unAPI ( %formats )
-
-Exported by default as handy alias for
-
-    Plack::App::unAPI->new( formats => \%formats )->to_app
-
-=head2 wrAPI ( $code, $type, [ %about ] )
-
-This method returns an array reference to be passed to the constructor. The
-first argument must be a simple code reference that gets called with C<id> as
-only parameter. If its return value is C<undef>, a 404 response is returned.
-Otherwise the code reference must return a serialized byte string (NO unicode
-characters) that has MIME type C<$type>. To give an example:
-
-    sub get_json { my $id = shift; ...; return $json; }
-
-    # short form:
-    my $app = wrAPI( \&get_json => 'application/json' );
-
-    # equivalent code:
-    my $app = [
-        sub {
-            my $id   = Plack::Request->new(shift)->param('id') // '';
-            my $json = get_json( $id );
-            return defined $json
-                ? [ 200, [ 'Content-Type' => $type ], [ $json ] ]
-                : [ 404, [ 'Content-Type' => 'text/plain' ], [ 'not found' ] ];
-        } => 'application/json' 
-    ];
-
-=head1 CONFIGURATION
-
-=over
-
-=item formats
-
 =back
+
+=head2 FUNCTIONS
 
 =head1 SEE ALSO
 
